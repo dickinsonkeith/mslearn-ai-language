@@ -4,7 +4,8 @@ import base64
 from dotenv import load_dotenv
 
 # Add references
-
+from azure.identity import DefaultAzureCredential
+from azure.ai.projects import AIProjectClient
 
 def main(): 
 
@@ -19,10 +20,16 @@ def main():
         model_deployment =  os.getenv("MODEL_DEPLOYMENT")
 
         # Initialize the project client
-
+        project_client = AIProjectClient(            
+           credential=DefaultAzureCredential(
+               exclude_environment_credential=True,
+               exclude_managed_identity_credential=True
+           ),
+           endpoint=project_endpoint,
+        )
 
         # Get a chat client
-        
+        chat_client = project_client.inference.get_chat_completions_client()
 
         # Initialize prompts
         system_message = "You are an AI assistant for a produce supplier company."
@@ -39,13 +46,36 @@ def main():
                 print("Getting a response ...\n")
 
                 # Encode the audio file
-
+                file_path = "https://github.com/MicrosoftLearning/mslearn-ai-language/raw/refs/heads/main/Labfiles/09-audio-chat/data/avocados.mp3"
+                response = requests.get(file_path)
+                response.raise_for_status()
+                audio_data = base64.b64encode(response.content).decode('utf-8')
 
                 # Get a response to audio input
-                
+                response = chat_client.complete(
+                    model=model_deployment,
+                    messages=[
+                        {"role": "system", "content": system_message},
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": prompt},
+                                {
+                                    "type": "input_audio",
+                                    "input_audio": {
+                                        "data": audio_data,
+                                        "format": "mp3",
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                )
+
+                print(response.choices[0].message.content)
 
 
-    except Exception as ex:
+    except Exception as ex: 
         print(ex)
 
 
