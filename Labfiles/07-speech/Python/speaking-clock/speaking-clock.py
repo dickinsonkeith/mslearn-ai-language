@@ -17,7 +17,6 @@ def main():
         speech_region = os.getenv('SPEECH_REGION')
 
         # Configure speech service
-        global speech_config
         speech_config = speech_sdk.SpeechConfig(speech_key, speech_region)
         print('Ready to use speech service in:', speech_config.region)
 
@@ -37,7 +36,7 @@ def TranscribeCommand():
     audioFile = current_dir + '/time.wav'
     audio_config = speech_sdk.AudioConfig(filename=audioFile)
     speech_recognizer = speech_sdk.SpeechRecognizer(speech_config, audio_config)
-
+    
     # Process speech input
     print("Listening...")
     speech = speech_recognizer.recognize_once_async().get()
@@ -62,10 +61,10 @@ def TellTime():
     output_file = "output.wav"
     speech_config.speech_synthesis_voice_name = "en-GB-RyanNeural"
     audio_config = speech_sdk.audio.AudioConfig(filename=output_file)
-    speech_synthesizer = speech_sdk.SpeechSynthesizer(speech_config, audio_config)
+    speech_synthesizer = speech_sdk.SpeechSynthesizer(speech_config, audio_config,)
 
     # Synthesize spoken output
-    speak = speech_synthesizer.speak_ssml_async(responseSsml).get()
+    speak = speech_synthesizer.speak_text_async(response_text).get()
     if speak.reason != speech_sdk.ResultReason.SynthesizingAudioCompleted:
         print(speak.reason)
     else:
